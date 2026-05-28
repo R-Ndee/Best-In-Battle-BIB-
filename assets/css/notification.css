@@ -1,0 +1,53 @@
+/* ============================================
+   BIB — notification.css
+   ============================================ */
+
+.notif-page-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+
+.notif-page-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+    text-decoration: none;
+    color: inherit;
+}
+
+.notif-page-item:last-child { border-bottom: none; }
+.notif-page-item:hover { background: rgba(255,255,255,0.02); }
+.notif-page-item.unread { background: rgba(0,200,150,0.03); }
+
+.notif-page-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+}
+
+.notif-page-dot.unread { background: var(--accent); box-shadow: 0 0 6px rgba(0,200,150,0.4); }
+.notif-page-dot.read   { background: var(--border); }
+
+.notif-page-msg {
+    font-size: 0.875rem;
+    line-height: 1.55;
+}
+
+.notif-page-item.unread .notif-page-msg { color: var(--text); font-weight: 500; }
+.notif-page-item:not(.unread) .notif-page-msg { color: var(--text-muted); }
+
+.notif-page-time {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
