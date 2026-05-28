@@ -1,0 +1,296 @@
+/* ============================================
+   BIB — tournament.css | Detail & Kelola
+   ============================================ */
+
+/* --- TOURNAMENT DETAIL HERO --- */
+.tournament-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.tournament-hero::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 300px; height: 100%;
+    background: linear-gradient(135deg, transparent 30%, rgba(0,200,150,0.04));
+    pointer-events: none;
+}
+
+.tournament-hero-inner {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.tournament-hero-icon {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, rgba(0,200,150,0.15), rgba(0,229,255,0.15));
+    border: 1px solid rgba(0,200,150,0.3);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.tournament-hero-info { flex: 1; }
+
+.tournament-hero-info h1 {
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    margin-bottom: 0.5rem;
+}
+
+.tournament-hero-info .desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0.75rem 0 1rem;
+    max-width: 600px;
+    line-height: 1.6;
+}
+
+.tournament-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.tournament-tag {
+    padding: 0.25rem 0.75rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+/* Info grid */
+.tournament-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.info-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+}
+
+.info-item .label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-dim);
+    margin-bottom: 0.3rem;
+}
+
+.info-item .value {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+/* Participant list */
+.participants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.875rem;
+}
+
+.participant-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.875rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    transition: var(--transition);
+}
+
+.participant-item:hover { border-color: rgba(0,200,150,0.25); }
+
+.participant-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.participant-info .name {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text);
+}
+
+.participant-info .sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* --- PROPOSAL FORM --- */
+.form-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-section-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sets-toggle {
+    display: none;
+}
+
+.sets-toggle.visible { display: block; }
+
+/* --- KELOLA PESERTA (ORGANIZER PANEL) --- */
+.manage-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+
+.manage-panel-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    background: var(--surface-2);
+}
+
+.manage-panel-header h3 {
+    font-size: 0.95rem;
+    color: var(--text);
+}
+
+/* Status step indicator */
+.status-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.step-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.step.done .step-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0C0F0E;
+}
+
+.step.active .step-dot {
+    background: rgba(0,200,150,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 12px rgba(0,200,150,0.3);
+}
+
+.step-label {
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.step.done .step-label,
+.step.active .step-label { color: var(--accent); }
+
+.step-connector {
+    width: 40px;
+    height: 2px;
+    background: var(--border);
+    flex-shrink: 0;
+}
+
+.step.done + .step .step-connector,
+.step-connector.done { background: var(--accent); }
+
+.step-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    .tournament-hero-inner {
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .tournament-info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-section { padding: 1.25rem; }
+}
