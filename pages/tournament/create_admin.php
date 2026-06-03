@@ -3,7 +3,7 @@ require_once '../../config/database.php';
 session_start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: ../../pages/auth/login.php');
+    header('Location: /pages/auth/login.php');
     exit;
 }
 
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    if (!in_array($mode, ['bracket', 'poin'])) $mode = 'bracket';
+    if (!in_array($mode, ['bracket', 'point'])) $mode = 'bracket';
     if (!in_array($participant_type, ['individual', 'team'])) $participant_type = 'individual';
 
     if ($mode === 'bracket') {
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (mysqli_query($conn, $insert)) {
         $new_id = mysqli_insert_id($conn);
         $_SESSION['success'] = "Turnamen '$name' berhasil dibuat dan langsung aktif!";
-        header("Location: detail.php?id=$new_id");
+        header("Location: /pages/tournament/detail.php?id=$new_id");
     } else {
         $_SESSION['error'] = 'Gagal membuat turnamen.';
         header('Location: create_admin.php');
@@ -104,8 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label for="mode_bracket">⚔️ Bracket</label>
                         </div>
                         <div class="radio-card">
-                            <input type="radio" id="mode_poin" name="mode" value="poin"
-                                   <?= ($_POST['mode'] ?? '') === 'poin' ? 'checked' : '' ?>
+                            <input type="radio" id="mode_poin" name="mode" value="point"
+                                   <?= ($_POST['mode'] ?? '') === 'point' ? 'checked' : '' ?>
                                    onchange="toggleSets()">
                             <label for="mode_poin">📊 Mode Poin</label>
                         </div>

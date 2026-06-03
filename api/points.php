@@ -33,7 +33,7 @@ if ($action === 'update' && $tournament_id && $participant_id) {
 
     // Update poin (minimal 0)
     mysqli_query($conn, "UPDATE point_scores
-                          SET points = GREATEST(0, points + $delta), updated_at = NOW()
+                          SET points = GREATEST(0, points + $delta), update_at = NOW()
                           WHERE tournament_id = $tournament_id AND participant_id = $participant_id");
 
     $new = mysqli_fetch_assoc(mysqli_query($conn, "SELECT points FROM point_scores WHERE tournament_id = $tournament_id AND participant_id = $participant_id"));

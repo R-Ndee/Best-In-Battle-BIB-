@@ -3,7 +3,7 @@ require_once '../../config/database.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../pages/auth/login.php');
+    header('Location: /pages/auth/login.php');
     exit;
 }
 
@@ -16,7 +16,7 @@ if (!$t_id) { header('Location: index.php'); exit; }
 $t = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM tournaments WHERE id = $t_id AND status = 'ongoing' LIMIT 1"));
 if (!$t) {
     $_SESSION['error'] = 'Turnamen tidak ditemukan atau belum dimulai.';
-    header("Location: detail.php?id=$t_id");
+    header("Location: /pages/tournament/detail.php?id=$t_id");
     exit;
 }
 
@@ -24,10 +24,10 @@ $is_organizer = ((int)$t['organizer_id'] === $user_id) || $role === 'admin';
 
 // Selesaikan turnamen mode poin
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'finish_tournament_poin') {
-    if (!$is_organizer) { header("Location: scoring.php?id=$t_id"); exit; }
+    if (!$is_organizer) { header("Location: /pages/tournament/scoring.php?id=$t_id"); exit; }
     mysqli_query($conn, "UPDATE tournaments SET status = 'finished' WHERE id = $t_id");
     $_SESSION['success'] = 'Turnamen selesai!';
-    header("Location: detail.php?id=$t_id");
+    header("Location: /pages/tournament/detail.php?id=$t_id");
     exit;
 }
 
@@ -35,12 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // MODE POIN: load papan skor
 // ============================================================
 $point_scores = [];
-if ($t['mode'] === 'poin') {
+if ($t['mode'] === 'point') {
     $ps_q = "SELECT ps.*, p.display_name
              FROM point_scores ps
              JOIN participants p ON ps.participant_id = p.id
              WHERE ps.tournament_id = $t_id
-             ORDER BY ps.points DESC, ps.updated_at ASC";
+             ORDER BY ps.points DESC, ps.update_at ASC";
     $ps_r = mysqli_query($conn, $ps_q);
     while ($r = mysqli_fetch_assoc($ps_r)) $point_scores[] = $r;
 }
@@ -114,7 +114,7 @@ if ($t['mode'] === 'bracket') {
         </div>
     </div>
 
-    <?php if ($t['mode'] === 'poin'): ?>
+    <?php if ($t['mode'] === 'point'): ?>
     <!-- ======================================================
          MODE POIN
     ====================================================== -->

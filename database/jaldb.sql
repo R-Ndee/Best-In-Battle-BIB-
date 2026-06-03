@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 27, 2026 at 09:27 PM
+-- Generation Time: May 28, 2026 at 02:01 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -38,13 +38,6 @@ CREATE TABLE `matches` (
   `match_order` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `matches`
---
-
-INSERT INTO `matches` (`id`, `tournament_id`, `round`, `participant_a_id`, `participant_b_id`, `winner_id`, `status`, `match_order`) VALUES
-(4, 3, 1, 4, 6, NULL, 'ongoing', 1);
-
 -- --------------------------------------------------------
 
 --
@@ -60,25 +53,6 @@ CREATE TABLE `notifications` (
   `link` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `notifications`
---
-
-INSERT INTO `notifications` (`id`, `user_id`, `message`, `is_read`, `created_at`, `link`) VALUES
-(1, 1, 'Proposal turnamen baru \'Badminton BIB\' menunggu review Anda.', 1, '2026-05-26 15:40:12', NULL),
-(2, 3, 'Proposal turnamen \'Badminton BIB\' Anda telah disetujui! Turnamen kini berstatus Open.', 1, '2026-05-26 16:05:02', NULL),
-(3, 2, 'Pendaftaranmu di turnamen \'Badminton BIB\' telah disetujui oleh Organizer!', 0, '2026-05-26 16:44:30', NULL),
-(4, 1, 'Proposal turnamen baru \'ML - JTE\' menunggu review Anda.', 1, '2026-05-26 16:47:06', NULL),
-(5, 3, 'Proposal turnamen \'ML - JTE\' Anda telah disetujui! Turnamen kini berstatus Open.', 1, '2026-05-26 16:47:24', NULL),
-(6, 1, 'Proposal turnamen baru \'tes\' menunggu review Anda.', 1, '2026-05-26 16:49:31', NULL),
-(7, 2, 'Proposal turnamen \'tes\' Anda telah disetujui! Turnamen kini berstatus Open.', 0, '2026-05-26 16:49:43', NULL),
-(8, 2, 'Peserta baru \"member1\" mendaftar di turnamen \"tes\".', 0, '2026-05-26 16:54:24', NULL),
-(9, 3, 'Peserta baru \"organizer1\" mendaftar di turnamen \"ML - JTE\".', 1, '2026-05-26 16:55:59', NULL),
-(10, 2, 'Pendaftaranmu di turnamen \'ML - JTE\' telah disetujui oleh Organizer!', 0, '2026-05-26 16:57:38', NULL),
-(11, 3, 'Pendaftaranmu di turnamen \'tes\' telah disetujui oleh Organizer!', 0, '2026-05-26 16:58:57', NULL),
-(12, 2, 'Peserta baru \"member2\" mendaftar di turnamen \"tes\".', 0, '2026-05-27 19:09:12', NULL),
-(13, 4, 'Pendaftaranmu di turnamen \'tes\' telah disetujui oleh Organizer!', 0, '2026-05-27 19:09:23', NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -93,16 +67,6 @@ CREATE TABLE `participants` (
   `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `participants`
---
-
-INSERT INTO `participants` (`id`, `tournament_id`, `user_id`, `display_name`, `status`, `created_at`) VALUES
-(1, 1, 2, 'iman', 'approved', '2026-05-26 16:43:28'),
-(4, 3, 3, 'ndee', 'approved', '2026-05-26 16:54:24'),
-(5, 2, 2, 'iman', 'approved', '2026-05-26 16:55:59'),
-(6, 3, 4, 'iman', 'approved', '2026-05-27 19:09:12');
 
 -- --------------------------------------------------------
 
@@ -146,20 +110,11 @@ CREATE TABLE `tournaments` (
   `name` varchar(100) NOT NULL,
   `description` text NOT NULL,
   `mode` enum('bracket','point') NOT NULL,
-  `participant_type` enum('indinidual','team') NOT NULL,
+  `participant_type` enum('individual','team') NOT NULL,
   `sets_per_match` tinyint(4) DEFAULT NULL,
   `status` enum('pending','open','ongoing','finished','rejected') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `tournaments`
---
-
-INSERT INTO `tournaments` (`id`, `organizer_id`, `name`, `description`, `mode`, `participant_type`, `sets_per_match`, `status`, `created_at`) VALUES
-(1, 3, 'Badminton BIB', 'pertandingan mempertaruhkan jati diri', 'bracket', 'team', 3, 'open', '2026-05-26 15:40:12'),
-(2, 3, 'ML - JTE', 'pertarungan tim mempertaruhkan kelanjutan kehidupan', 'bracket', 'team', 1, 'open', '2026-05-26 16:47:06'),
-(3, 2, 'tes', 'tes', 'bracket', 'team', 1, 'ongoing', '2026-05-26 16:49:31');
 
 -- --------------------------------------------------------
 
@@ -184,7 +139,9 @@ INSERT INTO `users` (`id`, `username`, `email`, `password`, `role`, `created_at`
 (1, 'admin', 'admin@bib.com', '$2y$10$zNCIIi4dAdzgJoi4OPQpkuWQTsvYmRPLZQ8yxVoSfLPZno.O5vn4W', 'admin', '2026-05-25 12:28:58'),
 (2, 'organizer1', 'organizer@bib.com', '$2y$10$7Vz33MdDREpSTJU.xSGmz.E.N/4PvOuH5rWqvIvwMo2J4DSoOeBPS', 'member', '2026-05-25 12:28:58'),
 (3, 'member1', 'member@bib.com', '$2y$10$j/VWw137se3OMGzmyqrwC.Ui0JCE/7OhrPRt/oHOrHv6SaXHUsY0a', 'member', '2026-05-26 15:37:01'),
-(4, 'member2', 'member2@bib.com', '$2y$10$8dhy8ETiA.JaBsEdCw3tXuwEHGvECc9s0qon6LqajEGKC3CNgqdxq', 'member', '2026-05-25 12:28:58');
+(4, 'member2', 'member2@bib.com', '$2y$10$8dhy8ETiA.JaBsEdCw3tXuwEHGvECc9s0qon6LqajEGKC3CNgqdxq', 'member', '2026-05-25 12:28:58'),
+(5, 'member3', 'member3@bib.com', '$2y$10$sJjDfFBPAjG4fT1yQlMDRePHs605moUyC1sQxAW./BoV9mf9by.Ey', 'member', '2026-05-28 08:26:46'),
+(6, 'member4', 'member4@gmail.com', '$2y$10$wLWkxR.DNJrI4k0KCkzai.Yxep7daFuv9SGmWr9lhGqnsSUBZZZii', 'member', '2026-05-28 08:28:47');
 
 --
 -- Indexes for dumped tables
@@ -255,19 +212,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `matches`
 --
 ALTER TABLE `matches`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `participants`
 --
 ALTER TABLE `participants`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `point_scores`
@@ -285,13 +242,13 @@ ALTER TABLE `sets`
 -- AUTO_INCREMENT for table `tournaments`
 --
 ALTER TABLE `tournaments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables

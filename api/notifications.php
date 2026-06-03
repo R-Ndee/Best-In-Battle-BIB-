@@ -34,5 +34,5 @@ if ($action === 'read_all') {
     exit;
 }
 
-header('Location: ../pages/member/dashboard.php');
+header('Location: /pages/member/dashboard.php');
 exit;

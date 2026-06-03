@@ -4,7 +4,7 @@ session_start();
 
 $t_id = (int) ($_GET['id'] ?? 0);
 if (!$t_id) {
-    header('Location: ../../pages/auth/login.php');
+    header('Location: /pages/auth/login.php');
     exit;
 }
 
@@ -40,22 +40,22 @@ if ($user_id) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'register') {
     if (!$user_id) {
         $_SESSION['error'] = 'Harus login untuk mendaftar.';
-        header("Location: detail.php?id=$t_id");
+        header("Location: /pages/tournament/detail.php?id=$t_id");
         exit;
     }
     if ($is_organizer) {
         $_SESSION['error'] = 'Organizer tidak bisa mendaftar di turnamen sendiri.';
-        header("Location: detail.php?id=$t_id");
+        header("Location: /pages/tournament/detail.php?id=$t_id");
         exit;
     }
     if ($already_registered) {
         $_SESSION['error'] = 'Kamu sudah mendaftar di turnamen ini.';
-        header("Location: detail.php?id=$t_id");
+        header("Location: /pages/tournament/detail.php?id=$t_id");
         exit;
     }
     if ($tournament['status'] !== 'open') {
         $_SESSION['error'] = 'Pendaftaran sudah ditutup.';
-        header("Location: detail.php?id=$t_id");
+        header("Location: /pages/tournament/detail.php?id=$t_id");
         exit;
     }
 
@@ -69,12 +69,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // Notif ke organizer
     $username_safe = mysqli_real_escape_string($conn, $_SESSION['username']);
     $t_name_safe = mysqli_real_escape_string($conn, $tournament['name']);
-    $msg = "Peserta baru '$username_safe' mendaftar di turnamen '$t_name_safe'.";
+    // Notif ke organizer
+    $msg = mysqli_real_escape_string($conn, "Peserta baru '{$_SESSION['username']}' mendaftar di turnamen '{$tournament['name']}'.");
     $link = mysqli_real_escape_string($conn, "pages/tournament/manage.php?id=$t_id");
     mysqli_query($conn, "INSERT INTO notifications (user_id, message, link) VALUES ({$tournament['organizer_id']}, '$msg', '$link')");
 
     $_SESSION['success'] = 'Pendaftaran berhasil! Tunggu konfirmasi dari Organizer.';
-    header("Location: detail.php?id=$t_id");
+    header("Location: /pages/tournament/detail.php?id=$t_id");
     exit;
 }
 
@@ -95,13 +96,13 @@ $hasil_bracket = [];
 
 if ($tournament['status'] === 'finished') {
 
-    if ($tournament['mode'] === 'poin') {
+    if ($tournament['mode'] === 'point') {
         $hp_q = "SELECT ps.points, p.display_name, u.username
                  FROM point_scores ps
                  JOIN participants p ON ps.participant_id = p.id
                  JOIN users u ON p.user_id = u.id
                  WHERE ps.tournament_id = $t_id
-                 ORDER BY ps.points DESC, ps.updated_at ASC";
+                 ORDER BY ps.points DESC, ps.update_at ASC";
         $hp_r = mysqli_query($conn, $hp_q);
         while ($r = mysqli_fetch_assoc($hp_r))
             $hasil_poin[] = $r;
@@ -277,319 +278,337 @@ $mode_label = $tournament['mode'] === 'bracket' ? '⚔️ Bracket Single Elimina
         <?php endif; ?>
 
         <?php if ($tournament['status'] === 'finished'): ?>
-        <div style="margin-top:3rem;">
+            <div style="margin-top:3rem;">
 
-            <!-- ===== JUDUL SECTION ===== -->
-            <div style="text-align:center;margin-bottom:2.5rem;">
-                <div
-                    style="display:inline-flex;align-items:center;gap:0.75rem;background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.25);border-radius:20px;padding:0.4rem 1.25rem;margin-bottom:1rem;">
-                    <span
-                        style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;"></span>
-                    <span
-                        style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);">Turnamen
-                        Selesai</span>
+                <!-- ===== JUDUL SECTION ===== -->
+                <div style="text-align:center;margin-bottom:2.5rem;">
+                    <div
+                        style="display:inline-flex;align-items:center;gap:0.75rem;background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.25);border-radius:20px;padding:0.4rem 1.25rem;margin-bottom:1rem;">
+                        <span
+                            style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;"></span>
+                        <span
+                            style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);">Turnamen
+                            Selesai</span>
+                    </div>
+                    <h2 style="font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2.5rem);color:var(--text);">Hasil
+                        &
+                        Klasemen Akhir</h2>
                 </div>
-                <h2 style="font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2.5rem);color:var(--text);">Hasil &
-                    Klasemen Akhir</h2>
-            </div>
 
-            <?php if ($tournament['mode'] === 'poin' && !empty($hasil_poin)): ?>
-                <!-- ===================================================
+                <?php if ($tournament['mode'] === 'point' && !empty($hasil_poin)): ?>
+                    <!-- ===================================================
                 MODE POIN: PODIUM + TABEL RANKING
                 =================================================== -->
 
-                <!-- Podium visual -->
-                <?php
-                $p1 = $hasil_poin[0] ?? null;
-                $p2 = $hasil_poin[1] ?? null;
-                $p3 = $hasil_poin[2] ?? null;
-                ?>
-                <div style="display:flex;align-items:flex-end;justify-content:center;gap:1.5rem;margin:0 auto 3rem;max-width:700px;flex-wrap:wrap;padding:0 1rem;">
-                    <!-- Runner-up (kiri) -->
-                    <?php if ($p2): ?>
-                        <div style="display:flex;flex-direction:column;align-items:center;width:180px;">
-                            <div style="font-size:2rem;margin-bottom:0.5rem;">🥈</div>
-                            <div
-                                style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;text-align:center;">
-                                <?= htmlspecialchars($p2['display_name']) ?></div>
-                            <div
-                                style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--accent-2);margin-bottom:0.75rem;">
-                                <?= number_format($p2['points']) ?> pts</div>
-                            <div
-                                style="width:100%;height:130px;background:linear-gradient(180deg,rgba(0,229,255,0.12),var(--surface));border-top:3px solid var(--accent-2);border-radius:var(--radius-md) var(--radius-md) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:0.75rem;">
-                                <span
-                                    style="font-family:var(--font-display);font-size:3rem;font-weight:900;color:rgba(0,229,255,0.08);">2</span>
+                    <!-- Podium visual -->
+                    <?php
+                    $p1 = $hasil_poin[0] ?? null;
+                    $p2 = $hasil_poin[1] ?? null;
+                    $p3 = $hasil_poin[2] ?? null;
+                    ?>
+                    <div
+                        style="display:flex;align-items:flex-end;justify-content:center;gap:1.5rem;margin:0 auto 3rem;max-width:700px;flex-wrap:wrap;padding:0 1rem;">
+                        <!-- Runner-up (kiri) -->
+                        <?php if ($p2): ?>
+                            <div style="display:flex;flex-direction:column;align-items:center;width:180px;">
+                                <div style="font-size:2rem;margin-bottom:0.5rem;">🥈</div>
+                                <div
+                                    style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;text-align:center;">
+                                    <?= htmlspecialchars($p2['display_name']) ?>
+                                </div>
+                                <div
+                                    style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--accent-2);margin-bottom:0.75rem;">
+                                    <?= number_format($p2['points']) ?> pts
+                                </div>
+                                <div
+                                    style="width:100%;height:130px;background:linear-gradient(180deg,rgba(0,229,255,0.12),var(--surface));border-top:3px solid var(--accent-2);border-radius:var(--radius-md) var(--radius-md) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:0.75rem;">
+                                    <span
+                                        style="font-family:var(--font-display);font-size:3rem;font-weight:900;color:rgba(0,229,255,0.08);">2</span>
+                                </div>
                             </div>
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
 
-                    <!-- Juara 1 (tengah, lebih tinggi) -->
-                    <?php if ($p1): ?>
-                        <div style="display:flex;flex-direction:column;align-items:center;width:200px;">
-                            <div style="font-size:2.5rem;margin-bottom:0.5rem;filter:drop-shadow(0 0 12px rgba(0,200,150,0.6));">🏆
+                        <!-- Juara 1 (tengah, lebih tinggi) -->
+                        <?php if ($p1): ?>
+                            <div style="display:flex;flex-direction:column;align-items:center;width:200px;">
+                                <div
+                                    style="font-size:2.5rem;margin-bottom:0.5rem;filter:drop-shadow(0 0 12px rgba(0,200,150,0.6));">
+                                    🏆
+                                </div>
+                                <div
+                                    style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;text-align:center;">
+                                    <?= htmlspecialchars($p1['display_name']) ?>
+                                </div>
+                                <div
+                                    style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--accent);margin-bottom:0.75rem;">
+                                    <?= number_format($p1['points']) ?> pts
+                                </div>
+                                <div
+                                    style="width:100%;height:180px;background:linear-gradient(180deg,rgba(0,200,150,0.15),var(--surface));border-top:3px solid var(--accent);border-radius:var(--radius-md) var(--radius-md) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:0.75rem;box-shadow:0 -8px 32px rgba(0,200,150,0.15);">
+                                    <span
+                                        style="font-family:var(--font-display);font-size:4rem;font-weight:900;color:rgba(0,200,150,0.08);">1</span>
+                                </div>
                             </div>
-                            <div
-                                style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;text-align:center;">
-                                <?= htmlspecialchars($p1['display_name']) ?></div>
-                            <div
-                                style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--accent);margin-bottom:0.75rem;">
-                                <?= number_format($p1['points']) ?> pts</div>
-                            <div
-                                style="width:100%;height:180px;background:linear-gradient(180deg,rgba(0,200,150,0.15),var(--surface));border-top:3px solid var(--accent);border-radius:var(--radius-md) var(--radius-md) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:0.75rem;box-shadow:0 -8px 32px rgba(0,200,150,0.15);">
-                                <span
-                                    style="font-family:var(--font-display);font-size:4rem;font-weight:900;color:rgba(0,200,150,0.08);">1</span>
-                            </div>
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
 
-                    <!-- Peringkat 3 (kanan) -->
-                    <?php if ($p3): ?>
-                        <div style="display:flex;flex-direction:column;align-items:center;width:160px;">
-                            <div style="font-size:1.8rem;margin-bottom:0.5rem;">🥉</div>
-                            <div
-                                style="font-family:var(--font-display);font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;text-align:center;">
-                                <?= htmlspecialchars($p3['display_name']) ?></div>
-                            <div
-                                style="font-family:var(--font-display);font-size:0.95rem;font-weight:700;color:#a855f7;margin-bottom:0.75rem;">
-                                <?= number_format($p3['points']) ?> pts</div>
-                            <div
-                                style="width:100%;height:95px;background:linear-gradient(180deg,rgba(168,85,247,0.1),var(--surface));border-top:3px solid #a855f7;border-radius:var(--radius-md) var(--radius-md) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:0.75rem;">
-                                <span
-                                    style="font-family:var(--font-display);font-size:2.5rem;font-weight:900;color:rgba(168,85,247,0.08);">3</span>
+                        <!-- Peringkat 3 (kanan) -->
+                        <?php if ($p3): ?>
+                            <div style="display:flex;flex-direction:column;align-items:center;width:160px;">
+                                <div style="font-size:1.8rem;margin-bottom:0.5rem;">🥉</div>
+                                <div
+                                    style="font-family:var(--font-display);font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;text-align:center;">
+                                    <?= htmlspecialchars($p3['display_name']) ?>
+                                </div>
+                                <div
+                                    style="font-family:var(--font-display);font-size:0.95rem;font-weight:700;color:#a855f7;margin-bottom:0.75rem;">
+                                    <?= number_format($p3['points']) ?> pts
+                                </div>
+                                <div
+                                    style="width:100%;height:95px;background:linear-gradient(180deg,rgba(168,85,247,0.1),var(--surface));border-top:3px solid #a855f7;border-radius:var(--radius-md) var(--radius-md) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:0.75rem;">
+                                    <span
+                                        style="font-family:var(--font-display);font-size:2.5rem;font-weight:900;color:rgba(168,85,247,0.08);">3</span>
+                                </div>
                             </div>
-                        </div>
-                    <?php endif; ?>
-                </div>
+                        <?php endif; ?>
+                    </div>
 
-                <!-- Tabel ranking lengkap -->
-                <div class="section-title mb-2">
-                    <h2>Klasemen Lengkap</h2>
-                </div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width:60px;">Rank</th>
-                                <th>Peserta</th>
-                                <th style="text-align:right;">Poin Akhir</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($hasil_poin as $i => $hp): ?>
-                                <tr style="<?= $i === 0 ? 'background:rgba(0,200,150,0.04);' : '' ?>">
-                                    <td>
-                                        <span
-                                            style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:<?= $i === 0 ? 'var(--accent)' : ($i === 1 ? 'var(--accent-2)' : ($i === 2 ? '#a855f7' : 'var(--text-dim)')) ?>;">
-                                            <?= $i === 0 ? '🏆' : ($i === 1 ? '🥈' : ($i === 2 ? '🥉' : '#' . ($i + 1))) ?>
-                                        </span>
-                                    </td>
-                                    <td style="font-weight:<?= $i < 3 ? '700' : '400' ?>;">
-                                        <?= htmlspecialchars($hp['display_name']) ?>
-                                        <span
-                                            style="font-size:0.75rem;color:var(--text-dim);margin-left:0.5rem;"><?= htmlspecialchars($hp['username']) ?></span>
-                                    </td>
-                                    <td
-                                        style="text-align:right;font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:<?= $i === 0 ? 'var(--accent)' : 'var(--text)' ?>;">
-                                        <?= number_format($hp['points']) ?>
-                                    </td>
+                    <!-- Tabel ranking lengkap -->
+                    <div class="section-title mb-2">
+                        <h2>Klasemen Lengkap</h2>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:60px;">Rank</th>
+                                    <th>Peserta</th>
+                                    <th style="text-align:right;">Poin Akhir</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($hasil_poin as $i => $hp): ?>
+                                    <tr style="<?= $i === 0 ? 'background:rgba(0,200,150,0.04);' : '' ?>">
+                                        <td>
+                                            <span
+                                                style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:<?= $i === 0 ? 'var(--accent)' : ($i === 1 ? 'var(--accent-2)' : ($i === 2 ? '#a855f7' : 'var(--text-dim)')) ?>;">
+                                                <?= $i === 0 ? '🏆' : ($i === 1 ? '🥈' : ($i === 2 ? '🥉' : '#' . ($i + 1))) ?>
+                                            </span>
+                                        </td>
+                                        <td style="font-weight:<?= $i < 3 ? '700' : '400' ?>;">
+                                            <?= htmlspecialchars($hp['display_name']) ?>
+                                            <span
+                                                style="font-size:0.75rem;color:var(--text-dim);margin-left:0.5rem;"><?= htmlspecialchars($hp['username']) ?></span>
+                                        </td>
+                                        <td
+                                            style="text-align:right;font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:<?= $i === 0 ? 'var(--accent)' : 'var(--text)' ?>;">
+                                            <?= number_format($hp['points']) ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
 
-            <?php elseif ($tournament['mode'] === 'bracket' && !empty($hasil_bracket)): ?>
-                <!-- ===================================================
+                <?php elseif ($tournament['mode'] === 'bracket' && !empty($hasil_bracket)): ?>
+                    <!-- ===================================================
                 MODE BRACKET: PODIUM + REKAP PER RONDE
                 =================================================== -->
 
-                <?php
-                // Cari juara: winner dari match di ronde tertinggi
-                $max_round = max(array_keys($hasil_bracket));
-                $final_match = $hasil_bracket[$max_round][0] ?? null;
-                $juara1 = $final_match['winner_name'] ?? null;
-                // Runner-up = yang kalah di final
-                $juara2 = null;
-                if ($final_match) {
-                    $juara2 = ($final_match['winner_id'] == $final_match['participant_a_id'])
-                        ? $final_match['name_b']
-                        : $final_match['name_a'];
-                }
-                // Juara 3: tidak ada di single elimination (keduanya yang kalah di SF)
-                // Ambil match semi final (round $max_round - 1) kalau ada
-                $sf_losers = [];
-                if ($max_round > 1 && isset($hasil_bracket[$max_round - 1])) {
-                    foreach ($hasil_bracket[$max_round - 1] as $sf) {
-                        if ($sf['winner_id']) {
-                            $sf_losers[] = ($sf['winner_id'] == $sf['participant_a_id']) ? $sf['name_b'] : $sf['name_a'];
+                    <?php
+                    // Cari juara: winner dari match di ronde tertinggi
+                    $max_round = max(array_keys($hasil_bracket));
+                    $final_match = $hasil_bracket[$max_round][0] ?? null;
+                    $juara1 = $final_match['winner_name'] ?? null;
+                    // Runner-up = yang kalah di final
+                    $juara2 = null;
+                    if ($final_match) {
+                        $juara2 = ($final_match['winner_id'] == $final_match['participant_a_id'])
+                            ? $final_match['name_b']
+                            : $final_match['name_a'];
+                    }
+                    // Juara 3: tidak ada di single elimination (keduanya yang kalah di SF)
+                    // Ambil match semi final (round $max_round - 1) kalau ada
+                    $sf_losers = [];
+                    if ($max_round > 1 && isset($hasil_bracket[$max_round - 1])) {
+                        foreach ($hasil_bracket[$max_round - 1] as $sf) {
+                            if ($sf['winner_id']) {
+                                $sf_losers[] = ($sf['winner_id'] == $sf['participant_a_id']) ? $sf['name_b'] : $sf['name_a'];
+                            }
                         }
                     }
-                }
 
-                // Label ronde
-                $round_labels = [];
-                for ($r = 1; $r <= $max_round; $r++) {
-                    if ($r === $max_round)
-                        $round_labels[$r] = 'Grand Final';
-                    elseif ($r === $max_round - 1)
-                        $round_labels[$r] = 'Semi Final';
-                    elseif ($r === $max_round - 2)
-                        $round_labels[$r] = 'Quarter Final';
-                    else
-                        $round_labels[$r] = 'Babak ' . $r;
-                }
-                ?>
+                    // Label ronde
+                    $round_labels = [];
+                    for ($r = 1; $r <= $max_round; $r++) {
+                        if ($r === $max_round)
+                            $round_labels[$r] = 'Grand Final';
+                        elseif ($r === $max_round - 1)
+                            $round_labels[$r] = 'Semi Final';
+                        elseif ($r === $max_round - 2)
+                            $round_labels[$r] = 'Quarter Final';
+                        else
+                            $round_labels[$r] = 'Babak ' . $r;
+                    }
+                    ?>
 
-                <!-- Podium bracket -->
-                <div style="display:flex;align-items:flex-end;justify-content:center;gap:1.5rem;margin:0 auto 3rem;max-width:700px;flex-wrap:wrap;padding:0 1rem;">
+                    <!-- Podium bracket -->
+                    <div
+                        style="display:flex;align-items:flex-end;justify-content:center;gap:1.5rem;margin:0 auto 3rem;max-width:700px;flex-wrap:wrap;padding:0 1rem;">
 
-                    <?php if ($juara2): ?>
-                        <div style="display:flex;flex-direction:column;align-items:center;width:180px;">
-                            <div style="font-size:2rem;margin-bottom:0.5rem;">🥈</div>
-                            <div
-                                style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;text-align:center;">
-                                <?= htmlspecialchars($juara2) ?></div>
-                            <div style="font-size:0.78rem;color:var(--accent-2);font-weight:600;margin-bottom:0.75rem;">Runner-up
-                            </div>
-                            <div
-                                style="width:100%;height:130px;background:linear-gradient(180deg,rgba(0,229,255,0.12),var(--surface));border-top:3px solid var(--accent-2);border-radius:var(--radius-md) var(--radius-md) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:0.75rem;">
-                                <span
-                                    style="font-family:var(--font-display);font-size:3rem;font-weight:900;color:rgba(0,229,255,0.08);">2</span>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ($juara1): ?>
-                        <div style="display:flex;flex-direction:column;align-items:center;width:200px;">
-                            <div style="font-size:2.5rem;margin-bottom:0.5rem;filter:drop-shadow(0 0 12px rgba(0,200,150,0.6));">🏆
-                            </div>
-                            <div
-                                style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;text-align:center;">
-                                <?= htmlspecialchars($juara1) ?></div>
-                            <div style="font-size:0.78rem;color:var(--accent);font-weight:600;margin-bottom:0.75rem;">🥇 Juara 1
-                            </div>
-                            <div
-                                style="width:100%;height:180px;background:linear-gradient(180deg,rgba(0,200,150,0.15),var(--surface));border-top:3px solid var(--accent);border-radius:var(--radius-md) var(--radius-md) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:0.75rem;box-shadow:0 -8px 32px rgba(0,200,150,0.15);">
-                                <span
-                                    style="font-family:var(--font-display);font-size:4rem;font-weight:900;color:rgba(0,200,150,0.08);">1</span>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($sf_losers)): ?>
-                        <div style="display:flex;flex-direction:column;align-items:center;width:160px;">
-                            <div style="font-size:1.8rem;margin-bottom:0.5rem;">🥉</div>
-                            <div
-                                style="font-family:var(--font-display);font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;text-align:center;">
-                                <?= htmlspecialchars($sf_losers[0]) ?></div>
-                            <div style="font-size:0.75rem;color:#a855f7;font-weight:600;margin-bottom:0.75rem;">Semi Finalis</div>
-                            <div
-                                style="width:100%;height:95px;background:linear-gradient(180deg,rgba(168,85,247,0.1),var(--surface));border-top:3px solid #a855f7;border-radius:var(--radius-md) var(--radius-md) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:0.75rem;">
-                                <span
-                                    style="font-family:var(--font-display);font-size:2.5rem;font-weight:900;color:rgba(168,85,247,0.08);">3</span>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Rekap per ronde -->
-                <div class="section-title mb-2">
-                    <h2>Rekap Pertandingan</h2>
-                </div>
-
-                <?php foreach ($hasil_bracket as $round => $matches): ?>
-                    <div style="margin-bottom:2rem;">
-                        <!-- Label ronde -->
-                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
-                            <div
-                                style="height:2px;width:32px;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:1px;">
-                            </div>
-                            <span
-                                style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:<?= $round === $max_round ? 'var(--accent)' : 'var(--text-muted)' ?>;">
-                                <?= $round_labels[$round] ?? "Babak $round" ?>
-                            </span>
-                            <?php if ($round === $max_round): ?>
-                                <span
-                                    style="font-size:0.65rem;font-weight:700;background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:var(--accent);padding:2px 8px;border-radius:20px;">FINAL</span>
-                            <?php endif; ?>
-                        </div>
-
-                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem;">
-                            <?php foreach ($matches as $m): ?>
+                        <?php if ($juara2): ?>
+                            <div style="display:flex;flex-direction:column;align-items:center;width:180px;">
+                                <div style="font-size:2rem;margin-bottom:0.5rem;">🥈</div>
                                 <div
-                                    style="background:var(--surface);border:1px solid <?= $round === $max_round ? 'rgba(0,200,150,0.3)' : 'var(--border)' ?>;border-radius:var(--radius-lg);overflow:hidden;<?= $round === $max_round ? 'box-shadow:0 0 24px rgba(0,200,150,0.08);' : '' ?>">
-
-                                    <!-- Match header -->
-                                    <div
-                                        style="padding:0.6rem 1rem;background:var(--surface-2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-                                        <span
-                                            style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-dim);">
-                                            Match <?= $m['match_order'] ?>
-                                        </span>
-                                        <?php if ($m['match_status'] === 'finished'): ?>
-                                            <span
-                                                style="font-size:0.65rem;font-weight:700;color:var(--accent);background:rgba(0,200,150,0.1);padding:2px 8px;border-radius:20px;">Selesai</span>
-                                        <?php else: ?>
-                                            <span style="font-size:0.65rem;color:var(--text-dim);">—</span>
-                                        <?php endif; ?>
-                                    </div>
-
-                                    <!-- Peserta baris atas -->
-                                    <div
-                                        style="padding:0.7rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:0.5rem;<?= $m['winner_id'] == $m['participant_a_id'] ? 'background:rgba(0,200,150,0.05);' : '' ?>">
-                                        <span
-                                            style="font-size:0.875rem;font-weight:<?= $m['winner_id'] == $m['participant_a_id'] ? '700' : '400' ?>;color:<?= $m['winner_id'] == $m['participant_a_id'] ? 'var(--text)' : 'var(--text-muted)' ?>;">
-                                            <?= htmlspecialchars($m['name_a'] ?? 'BYE') ?>
-                                        </span>
-                                        <?php if ($m['winner_id'] == $m['participant_a_id']): ?>
-                                            <span style="font-size:0.7rem;color:var(--accent);">🏆 Menang</span>
-                                        <?php endif; ?>
-                                    </div>
-
-                                    <!-- Peserta baris bawah -->
-                                    <div
-                                        style="padding:0.7rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;<?= $m['winner_id'] == $m['participant_b_id'] ? 'background:rgba(0,200,150,0.05);' : '' ?>">
-                                        <span
-                                            style="font-size:0.875rem;font-weight:<?= $m['winner_id'] == $m['participant_b_id'] ? '700' : '400' ?>;color:<?= $m['winner_id'] == $m['participant_b_id'] ? 'var(--text)' : 'var(--text-muted)' ?>;">
-                                            <?= htmlspecialchars($m['name_b'] ?? 'BYE') ?>
-                                        </span>
-                                        <?php if ($m['winner_id'] == $m['participant_b_id']): ?>
-                                            <span style="font-size:0.7rem;color:var(--accent);">🏆 Menang</span>
-                                        <?php endif; ?>
-                                    </div>
-
-                                    <!-- Set history (kalau ada) -->
-                                    <?php if (!empty($m['sets'])): ?>
-                                        <div style="border-top:1px solid var(--border);padding:0.6rem 1rem;background:var(--bg);">
-                                            <div
-                                                style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-dim);margin-bottom:0.5rem;">
-                                                Detail Set</div>
-                                            <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
-                                                <?php foreach ($m['sets'] as $s): ?>
-                                                    <div
-                                                        style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.25rem 0.6rem;font-size:0.75rem;">
-                                                        <span style="color:var(--text-dim);">Set <?= $s['set_number'] ?>:</span>
-                                                        <strong style="color:var(--text);margin-left:0.25rem;"><?= $s['score_a'] ?> —
-                                                            <?= $s['score_b'] ?></strong>
-                                                        <?php if ($s['set_winner']): ?>
-                                                            <span
-                                                                style="color:var(--accent);margin-left:0.25rem;">(<?= htmlspecialchars($s['set_winner']) ?>)</span>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                <?php endforeach; ?>
-                                            </div>
-                                        </div>
-                                    <?php endif; ?>
-
+                                    style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;text-align:center;">
+                                    <?= htmlspecialchars($juara2) ?>
                                 </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+                                <div style="font-size:0.78rem;color:var(--accent-2);font-weight:600;margin-bottom:0.75rem;">
+                                    Runner-up
+                                </div>
+                                <div
+                                    style="width:100%;height:130px;background:linear-gradient(180deg,rgba(0,229,255,0.12),var(--surface));border-top:3px solid var(--accent-2);border-radius:var(--radius-md) var(--radius-md) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:0.75rem;">
+                                    <span
+                                        style="font-family:var(--font-display);font-size:3rem;font-weight:900;color:rgba(0,229,255,0.08);">2</span>
+                                </div>
+                            </div>
+                        <?php endif; ?>
 
-            <?php endif; ?>
-        </div>
-    <?php endif; // end status finished ?>
+                        <?php if ($juara1): ?>
+                            <div style="display:flex;flex-direction:column;align-items:center;width:200px;">
+                                <div
+                                    style="font-size:2.5rem;margin-bottom:0.5rem;filter:drop-shadow(0 0 12px rgba(0,200,150,0.6));">
+                                    🏆
+                                </div>
+                                <div
+                                    style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;text-align:center;">
+                                    <?= htmlspecialchars($juara1) ?>
+                                </div>
+                                <div style="font-size:0.78rem;color:var(--accent);font-weight:600;margin-bottom:0.75rem;">🥇 Juara 1
+                                </div>
+                                <div
+                                    style="width:100%;height:180px;background:linear-gradient(180deg,rgba(0,200,150,0.15),var(--surface));border-top:3px solid var(--accent);border-radius:var(--radius-md) var(--radius-md) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:0.75rem;box-shadow:0 -8px 32px rgba(0,200,150,0.15);">
+                                    <span
+                                        style="font-family:var(--font-display);font-size:4rem;font-weight:900;color:rgba(0,200,150,0.08);">1</span>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($sf_losers)): ?>
+                            <div style="display:flex;flex-direction:column;align-items:center;width:160px;">
+                                <div style="font-size:1.8rem;margin-bottom:0.5rem;">🥉</div>
+                                <div
+                                    style="font-family:var(--font-display);font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;text-align:center;">
+                                    <?= htmlspecialchars($sf_losers[0]) ?>
+                                </div>
+                                <div style="font-size:0.75rem;color:#a855f7;font-weight:600;margin-bottom:0.75rem;">Semi Finalis
+                                </div>
+                                <div
+                                    style="width:100%;height:95px;background:linear-gradient(180deg,rgba(168,85,247,0.1),var(--surface));border-top:3px solid #a855f7;border-radius:var(--radius-md) var(--radius-md) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:0.75rem;">
+                                    <span
+                                        style="font-family:var(--font-display);font-size:2.5rem;font-weight:900;color:rgba(168,85,247,0.08);">3</span>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Rekap per ronde -->
+                    <div class="section-title mb-2">
+                        <h2>Rekap Pertandingan</h2>
+                    </div>
+
+                    <?php foreach ($hasil_bracket as $round => $matches): ?>
+                        <div style="margin-bottom:2rem;">
+                            <!-- Label ronde -->
+                            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+                                <div
+                                    style="height:2px;width:32px;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:1px;">
+                                </div>
+                                <span
+                                    style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:<?= $round === $max_round ? 'var(--accent)' : 'var(--text-muted)' ?>;">
+                                    <?= $round_labels[$round] ?? "Babak $round" ?>
+                                </span>
+                                <?php if ($round === $max_round): ?>
+                                    <span
+                                        style="font-size:0.65rem;font-weight:700;background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.25);color:var(--accent);padding:2px 8px;border-radius:20px;">FINAL</span>
+                                <?php endif; ?>
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem;">
+                                <?php foreach ($matches as $m): ?>
+                                    <div
+                                        style="background:var(--surface);border:1px solid <?= $round === $max_round ? 'rgba(0,200,150,0.3)' : 'var(--border)' ?>;border-radius:var(--radius-lg);overflow:hidden;<?= $round === $max_round ? 'box-shadow:0 0 24px rgba(0,200,150,0.08);' : '' ?>">
+
+                                        <!-- Match header -->
+                                        <div
+                                            style="padding:0.6rem 1rem;background:var(--surface-2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                                            <span
+                                                style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-dim);">
+                                                Match <?= $m['match_order'] ?>
+                                            </span>
+                                            <?php if ($m['match_status'] === 'finished'): ?>
+                                                <span
+                                                    style="font-size:0.65rem;font-weight:700;color:var(--accent);background:rgba(0,200,150,0.1);padding:2px 8px;border-radius:20px;">Selesai</span>
+                                            <?php else: ?>
+                                                <span style="font-size:0.65rem;color:var(--text-dim);">—</span>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <!-- Peserta baris atas -->
+                                        <div
+                                            style="padding:0.7rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:0.5rem;<?= $m['winner_id'] == $m['participant_a_id'] ? 'background:rgba(0,200,150,0.05);' : '' ?>">
+                                            <span
+                                                style="font-size:0.875rem;font-weight:<?= $m['winner_id'] == $m['participant_a_id'] ? '700' : '400' ?>;color:<?= $m['winner_id'] == $m['participant_a_id'] ? 'var(--text)' : 'var(--text-muted)' ?>;">
+                                                <?= htmlspecialchars($m['name_a'] ?? 'BYE') ?>
+                                            </span>
+                                            <?php if ($m['winner_id'] == $m['participant_a_id']): ?>
+                                                <span style="font-size:0.7rem;color:var(--accent);">🏆 Menang</span>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <!-- Peserta baris bawah -->
+                                        <div
+                                            style="padding:0.7rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;<?= $m['winner_id'] == $m['participant_b_id'] ? 'background:rgba(0,200,150,0.05);' : '' ?>">
+                                            <span
+                                                style="font-size:0.875rem;font-weight:<?= $m['winner_id'] == $m['participant_b_id'] ? '700' : '400' ?>;color:<?= $m['winner_id'] == $m['participant_b_id'] ? 'var(--text)' : 'var(--text-muted)' ?>;">
+                                                <?= htmlspecialchars($m['name_b'] ?? 'BYE') ?>
+                                            </span>
+                                            <?php if ($m['winner_id'] == $m['participant_b_id']): ?>
+                                                <span style="font-size:0.7rem;color:var(--accent);">🏆 Menang</span>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <!-- Set history (kalau ada) -->
+                                        <?php if (!empty($m['sets'])): ?>
+                                            <div style="border-top:1px solid var(--border);padding:0.6rem 1rem;background:var(--bg);">
+                                                <div
+                                                    style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-dim);margin-bottom:0.5rem;">
+                                                    Detail Set</div>
+                                                <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+                                                    <?php foreach ($m['sets'] as $s): ?>
+                                                        <div
+                                                            style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.25rem 0.6rem;font-size:0.75rem;">
+                                                            <span style="color:var(--text-dim);">Set <?= $s['set_number'] ?>:</span>
+                                                            <strong style="color:var(--text);margin-left:0.25rem;"><?= $s['score_a'] ?> —
+                                                                <?= $s['score_b'] ?></strong>
+                                                            <?php if ($s['set_winner']): ?>
+                                                                <span
+                                                                    style="color:var(--accent);margin-left:0.25rem;">(<?= htmlspecialchars($s['set_winner']) ?>)</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+
+                <?php endif; ?>
+            </div>
+        <?php endif; // end status finished ?>
     </div>
 
     <!-- Modal Daftar -->
