@@ -5,12 +5,12 @@ session_start();
 
 // Proteksi halaman
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ../auth/login.php');
+    header('Location: /pages/auth/login.php');
     exit;
 }
 
 if ($_SESSION['role'] === 'admin') {
-    header('Location: ../admin/dashboard.php');
+    header('Location: /pages/admin/dashboard.php');
     exit;
 }
 
@@ -19,12 +19,12 @@ $user_id = (int) $_SESSION['user_id'];
 
 // Proteksi halaman
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ../auth/login.php');
+    header('Location: /pages/auth/login.php');
     exit;
 }
 
 if ($_SESSION['role'] === 'admin') {
-    header('Location: ../admin/dashboard.php');
+    header('Location: /pages/admin/dashboard.php');
     exit;
 }
 

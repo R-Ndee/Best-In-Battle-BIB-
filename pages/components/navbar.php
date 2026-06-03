@@ -53,6 +53,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
         <!-- Desktop Nav -->
         <ul class="navbar-nav">
             <li><a href="<?= $base ?>index.php" class="<?= $current_page === 'index' ? 'active' : '' ?>">Beranda</a>
+            <li><a href="<?= $base ?>pages/about.php" class="<?= $current_page === 'about' ? 'active' : '' ?>">Tim</a></li>
             </li>
 
             <?php if ($current_role === 'member'): ?>
@@ -157,6 +158,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
 <!-- Mobile Nav -->
 <div class="mobile-nav" id="mobileNav">
     <a href="<?= $base ?>index.php">🏠 Beranda</a>
+    <a href="<?= $base ?>pages/about.php">👥 Tim Pengembang</a>
 
     <?php if ($current_role === 'member'): ?>
         <a href="<?= $base ?>pages/member/dashboard.php">📊 Dashboard</a>

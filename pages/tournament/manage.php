@@ -3,7 +3,7 @@ require_once '../../config/database.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../pages/auth/login.php');
+    header('Location: /pages/auth/login.php');
     exit;
 }
 
@@ -28,7 +28,7 @@ if (!$t) {
 $is_organizer = ((int) $t['organizer_id'] === $user_id) || $role === 'admin';
 if (!$is_organizer) {
     $_SESSION['error'] = 'Akses ditolak.';
-    header("Location: detail.php?id=$t_id");
+    header("Location: /pages/tournament/detail.php?id=$t_id");
     exit;
 }
 
@@ -79,19 +79,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 // Buat pasangan ronde 1 (bye kalau ganjil)
                 $match_order = 1;
+                $round1_matches = 0;
+
                 for ($i = 0; $i < count($p_ids); $i += 2) {
                     $pa = $p_ids[$i];
                     $pb = isset($p_ids[$i + 1]) ? $p_ids[$i + 1] : 'NULL';
                     mysqli_query($conn, "INSERT INTO matches (tournament_id, round, match_order, participant_a_id, participant_b_id, status)
-                                         VALUES ($t_id, 1, $match_order, $pa, $pb, 'pending')");
+                         VALUES ($t_id, 1, $match_order, $pa, $pb, 'pending')");
 
-                    // Kalau bye (ganjil), langsung set winner = pa dan advance
                     if ($pb === 'NULL') {
                         $bye_id = mysqli_insert_id($conn);
                         mysqli_query($conn, "UPDATE matches SET winner_id = $pa, status = 'finished' WHERE id = $bye_id");
                     }
+                    $round1_matches++;
                     $match_order++;
                 }
+
+                // Generate placeholder match untuk ronde berikutnya
+                $total_participants = count($p_ids);
+                $total_rounds = (int) ceil(log($total_participants, 2));
+
+                for ($round = 2; $round <= $total_rounds; $round++) {
+                    $matches_in_round = (int) pow(2, $total_rounds - $round);
+                    for ($m = 1; $m <= $matches_in_round; $m++) {
+                        mysqli_query($conn, "INSERT INTO matches (tournament_id, round, match_order, status)
+                             VALUES ($t_id, $round, $m, 'pending')");
+                    }
+                }
+
                 $_SESSION['success'] = 'Bracket berhasil di-generate! Acak ulang atau mulai turnamen.';
             }
         }
@@ -106,8 +121,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 mysqli_query($conn, "UPDATE tournaments SET status = 'ongoing' WHERE id = $t_id");
 
-                // Set match pertama jadi ongoing
-                mysqli_query($conn, "UPDATE matches SET status = 'ongoing' WHERE tournament_id = $t_id AND status = 'pending' AND participant_a_id IS NOT NULL AND participant_b_id IS NOT NULL ORDER BY round ASC, match_order ASC LIMIT 1");
+                // Ambil match pertama dulu, baru update by ID
+                $first_match = mysqli_fetch_assoc(mysqli_query($conn,
+                    "SELECT id FROM matches
+                     WHERE tournament_id = $t_id
+                     AND status = 'pending'
+                     AND participant_a_id IS NOT NULL
+                     AND participant_b_id IS NOT NULL
+                     ORDER BY round ASC, match_order ASC
+                     LIMIT 1"
+                ));
+                if ($first_match) {
+                    mysqli_query($conn, "UPDATE matches SET status = 'ongoing' WHERE id = {$first_match['id']}");
+                }
 
                 $_SESSION['success'] = 'Turnamen dimulai! Bracket terkunci.';
             }
@@ -122,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    header("Location: manage.php?id=$t_id");
+    header("Location: /pages/tournament/manage.php?id=$t_id");
     exit;
 }
 

@@ -1,8 +1,10 @@
 <?php
-$host     = 'localhost';
-$db_name  = 'jaldb';
-$username = 'root';
-$password = '';
+define('BASE_URL', '');
+
+$host     = 'sql113.infinityfree.com';
+$db_name  = 'if0_42037972_jaldb';
+$username = 'if0_42037972';
+$password = 'ndeesuajah';
 
 $conn = mysqli_connect($host, $username, $password, $db_name);
 

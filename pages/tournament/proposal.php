@@ -3,7 +3,7 @@ require_once '../../config/database.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../pages/auth/login.php');
+    header('Location: /pages/auth/login.php');
     exit;
 }
 if ($_SESSION['role'] === 'admin') {
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    if (!in_array($mode, ['bracket', 'poin'])) $mode = 'bracket';
+    if (!in_array($mode, ['bracket', 'point'])) $mode = 'bracket';
     if (!in_array($participant_type, ['individual', 'team'])) $participant_type = 'individual';
 
     if ($mode === 'bracket') {
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_query($conn, "INSERT INTO notifications (user_id, message, link) VALUES ({$a['id']}, '$notif_msg', '$notif_link')");
         }
         $_SESSION['success'] = 'Proposal berhasil diajukan! Tunggu persetujuan Admin.';
-        header('Location: ../../pages/member/dashboard.php');
+        header('Location: /pages/member/dashboard.php');
     } else {
         $_SESSION['error'] = 'Gagal menyimpan proposal. Coba lagi.';
         header('Location: proposal.php');
@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <div class="radio-card">
                             <input type="radio" id="mode_poin" name="mode" value="poin"
-                                   <?= ($_POST['mode'] ?? '') === 'poin' ? 'checked' : '' ?>
+                                   <?= ($_POST['mode'] ?? '') === 'point' ? 'checked' : '' ?>
                                    onchange="toggleSetsField()">
                             <label for="mode_poin">📊 Mode Poin</label>
                         </div>
