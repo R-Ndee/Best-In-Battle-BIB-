@@ -122,7 +122,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 mysqli_query($conn, "UPDATE tournaments SET status = 'ongoing' WHERE id = $t_id");
 
                 // Ambil match pertama dulu, baru update by ID
-                $first_match = mysqli_fetch_assoc(mysqli_query($conn,
+                $first_match = mysqli_fetch_assoc(mysqli_query(
+                    $conn,
                     "SELECT id FROM matches
                      WHERE tournament_id = $t_id
                      AND status = 'pending'
@@ -218,11 +219,14 @@ $can_bracket = $t['mode'] === 'bracket' && $t['status'] === 'open' && count($app
                 </p>
             </div>
             <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-                <a href="<?= $base ?>pages/tournament/detail.php?id=<?= $t_id ?>" class="btn btn-secondary btn-sm">←
-                    Lihat Detail</a>
+                <a href="/pages/tournament/detail.php?id=<?= $t_id ?>" class="btn btn-secondary btn-sm">← Lihat
+                    Detail</a>
+                <?php if (in_array($t['status'], ['open', 'pending'])): ?>
+                    <a href="/pages/tournament/edit.php?id=<?= $t_id ?>" class="btn btn-outline btn-sm">✏️ Edit</a>
+                <?php endif; ?>
                 <?php if ($t['status'] === 'ongoing'): ?>
-                    <a href="<?= $base ?>pages/tournament/scoring.php?id=<?= $t_id ?>" class="btn btn-primary btn-sm">🎯
-                        Live Scoring →</a>
+                    <a href="/pages/tournament/scoring.php?id=<?= $t_id ?>" class="btn btn-primary btn-sm">🎯 Live Scoring
+                        →</a>
                 <?php endif; ?>
             </div>
         </div>

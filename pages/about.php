@@ -1,5 +1,5 @@
 <?php
-require_once '../../config/database.php';
+require_once '../config/database.php';
 session_start();
 ?>
 <!DOCTYPE html>
@@ -196,7 +196,7 @@ session_start();
     </style>
 </head>
 <body class="page-fade">
-<?php include '../components/navbar.php'; ?>
+<?php include 'components/navbar.php'; ?>
 
 <div class="container">
 
@@ -220,8 +220,8 @@ session_start();
         <!-- Randi -->
         <div class="member-card">
             <div class="member-photo">
-                <?php if (file_exists('../../assets/img/randi.jpg') || file_exists('../../assets/img/randi.png')): ?>
-                    <img src="../../assets/img/randi.jpg" alt="Randi Franco Taroreh"
+                <?php if (file_exists('../assets/img/randi.jpg') || file_exists('../assets/img/randi.png')): ?>
+                    <img src="../assets/img/randi.jpg" alt="Randi Franco Taroreh"
                          onerror="this.parentElement.innerHTML='<div class=\'member-photo-placeholder\'>RF</div>'">
                 <?php else: ?>
                     <div class="member-photo-placeholder">RF</div>
@@ -235,8 +235,8 @@ session_start();
         <!-- Glenn -->
         <div class="member-card">
             <div class="member-photo">
-                <?php if (file_exists('../../assets/img/glenn.jpg') || file_exists('../../assets/img/glenn.png')): ?>
-                    <img src="../../assets/img/glenn.jpg" alt="Glenn Norton Sumbaluwu"
+                <?php if (file_exists('../assets/img/glenn.jpg') || file_exists('../assets/img/glenn.png')): ?>
+                    <img src="../assets/img/glenn.jpg" alt="Glenn Norton Sumbaluwu"
                          onerror="this.parentElement.innerHTML='<div class=\'member-photo-placeholder\'>GN</div>'">
                 <?php else: ?>
                     <div class="member-photo-placeholder">GN</div>
@@ -250,8 +250,8 @@ session_start();
         <!-- Raja -->
         <div class="member-card">
             <div class="member-photo">
-                <?php if (file_exists('../../assets/img/raja.jpg') || file_exists('../../assets/img/raja.png')): ?>
-                    <img src="../../assets/img/raja.jpg" alt="Raja Timothi Brilliant Kiroyan"
+                <?php if (file_exists('../assets/img/raja.jpg') || file_exists('../assets/img/raja.png')): ?>
+                    <img src="../assets/img/raja.jpg" alt="Raja Timothi Brilliant Kiroyan"
                          onerror="this.parentElement.innerHTML='<div class=\'member-photo-placeholder\'>RT</div>'">
                 <?php else: ?>
                     <div class="member-photo-placeholder">RT</div>
@@ -265,8 +265,8 @@ session_start();
         <!-- Danielle -->
         <div class="member-card">
             <div class="member-photo">
-                <?php if (file_exists('../../assets/img/danielle.jpg') || file_exists('../../assets/img/danielle.png')): ?>
-                    <img src="../../assets/img/danielle.jpg" alt="Danielle Godwin Kawulusan"
+                <?php if (file_exists('../assets/img/danielle.jpg') || file_exists('../assets/img/danielle.png')): ?>
+                    <img src="../assets/img/danielle.jpg" alt="Danielle Godwin Kawulusan"
                          onerror="this.parentElement.innerHTML='<div class=\'member-photo-placeholder\'>DG</div>'">
                 <?php else: ?>
                     <div class="member-photo-placeholder">DG</div>
@@ -310,7 +310,7 @@ session_start();
 
 </div>
 
-<?php include '../components/footer.php'; ?>
-<script src="../../assets/js/global.js"></script>
+<?php include 'components/footer.php'; ?>
+<script src="../assets/js/global.js"></script>
 </body>
 </html>

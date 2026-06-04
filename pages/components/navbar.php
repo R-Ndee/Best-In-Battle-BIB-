@@ -35,7 +35,7 @@ $script = str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME']);
 $root   = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']);
 $rel    = str_replace($root, '', $script);
 $depth  = substr_count(trim($rel, '/'), '/');
-$base   = $depth > 1 ? str_repeat('../', $depth - 1) : '';
+$base   = '/';
 
 
 // Tentukan halaman aktif dari URL
